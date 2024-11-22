@@ -129,10 +129,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="compute_buffer.cpp" />
     <ClCompile Include="dx12_handler.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="compute_buffer.h" />
     <ClInclude Include="dx12_handler.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="utils.h" />
