@@ -35,6 +35,7 @@ ComPtr<ID3D12CommandAllocator> create_command_allocator(dx12_handler* dx12);
 ComPtr<ID3D12GraphicsCommandList> create_command_list(dx12_handler* dx12);
 void initialize_descriptor_heap(
 	dx12_handler* dx12,
+	descriptor_heap* heap,
 	const D3D12_DESCRIPTOR_HEAP_TYPE heap_type,
 	const unsigned int num_descriptors,
 	const D3D12_DESCRIPTOR_HEAP_FLAGS flags

@@ -20,6 +20,7 @@ void initialize_dx12_handler(dx12_handler* dx12) {
 	dx12->cbv_srv_uav_heap = new descriptor_heap;
 	initialize_descriptor_heap(
 		dx12,
+		dx12->cbv_srv_uav_heap,
 		D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
 		1000,
 		D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
@@ -230,9 +231,32 @@ ComPtr<ID3D12GraphicsCommandList> create_command_list(dx12_handler* dx12) {
 
 void initialize_descriptor_heap(
 	dx12_handler* dx12,
+	descriptor_heap* heap,
 	const D3D12_DESCRIPTOR_HEAP_TYPE heap_type,
 	const unsigned int num_descriptors,
 	const D3D12_DESCRIPTOR_HEAP_FLAGS flags
 ) {
-	// TODO: Finish me!
+	ComPtr<ID3D12Device> dev;
+	ComPtr<ID3D12DescriptorHeap> dx_heap;
+	D3D12_DESCRIPTOR_HEAP_DESC desc;
+	HRESULT result;
+
+	dev = dx12->device;
+
+	desc = {};
+	desc.Type = heap_type;
+	desc.NumDescriptors = num_descriptors;
+	desc.Flags = flags;
+
+	result = dev->CreateDescriptorHeap(
+		&desc,
+		IID_PPV_ARGS(&dx_heap)
+	);
+
+	throw_if_failed(result);
+
+	heap->heap = dx_heap;
+	heap->curr_descriptor_index = 0;
+	heap->descriptor_count = num_descriptors;
+	heap->descriptor_size = dev->GetDescriptorHandleIncrementSize(heap_type);
 }
