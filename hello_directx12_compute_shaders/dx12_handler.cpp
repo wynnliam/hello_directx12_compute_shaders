@@ -16,6 +16,14 @@ void initialize_dx12_handler(dx12_handler* dx12) {
 	dx12->command_queue = create_command_queue(dx12);
 	dx12->command_allocator = create_command_allocator(dx12);
 	dx12->command_list = create_command_list(dx12);
+
+	dx12->cbv_srv_uav_heap = new descriptor_heap;
+	initialize_descriptor_heap(
+		dx12,
+		D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+		1000,
+		D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
+	);
 }
 
 void enable_dx12_debug_layer() {
@@ -218,4 +226,13 @@ ComPtr<ID3D12GraphicsCommandList> create_command_list(dx12_handler* dx12) {
 	throw_if_failed(result);
 
 	return command_list;
+}
+
+void initialize_descriptor_heap(
+	dx12_handler* dx12,
+	const D3D12_DESCRIPTOR_HEAP_TYPE heap_type,
+	const unsigned int num_descriptors,
+	const D3D12_DESCRIPTOR_HEAP_FLAGS flags
+) {
+	// TODO: Finish me!
 }

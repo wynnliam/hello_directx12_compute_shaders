@@ -35,3 +35,8 @@ void allocate_buffer_on_gpu(
 	compute_buffer* buffer,
 	dx12_handler* dx12
 );
+
+void create_buffer_descriptor(
+	compute_buffer* buffer,
+	dx12_handler* dx12
+);

@@ -19,6 +19,13 @@ void initialize_compute_buffer(
 	//
 
 	allocate_buffer_on_gpu(buffer, dx12);
+
+	//
+	// Now that we have allocated the buffer, create a UAV
+	// descriptor for it.
+	//
+
+	create_buffer_descriptor(buffer, dx12);
 }
 
 void allocate_buffer_on_gpu(
@@ -63,4 +70,11 @@ void allocate_buffer_on_gpu(
 	);
 
 	throw_if_failed(result);
+}
+
+void create_buffer_descriptor(
+	compute_buffer* buffer,
+	dx12_handler* dx12
+) {
+
 }
