@@ -15,6 +15,7 @@ void initialize_dx12_handler(dx12_handler* dx12) {
 	dx12->device = create_dx12_device(adapter);
 	dx12->command_queue = create_command_queue(dx12);
 	dx12->command_allocator = create_command_allocator(dx12);
+	dx12->command_list = create_command_list(dx12);
 }
 
 void enable_dx12_debug_layer() {
@@ -196,8 +197,25 @@ ComPtr<ID3D12CommandAllocator> create_command_allocator(dx12_handler* dx12) {
 
 ComPtr<ID3D12GraphicsCommandList> create_command_list(dx12_handler* dx12) {
 	ComPtr<ID3D12GraphicsCommandList> command_list;
+	HRESULT result;
+	ComPtr<ID3D12Device> dev;
+	ComPtr<ID3D12CommandAllocator> allocator;
 
-	// ...
+	dev = dx12->device;
+	allocator = dx12->command_allocator;
+
+	result = dev->CreateCommandList(
+		0,
+		D3D12_COMMAND_LIST_TYPE_DIRECT,
+		allocator.Get(),
+		NULL,
+		IID_PPV_ARGS(&command_list)
+	);
+
+	throw_if_failed(result);
+
+	result = command_list->Close();
+	throw_if_failed(result);
 
 	return command_list;
 }
