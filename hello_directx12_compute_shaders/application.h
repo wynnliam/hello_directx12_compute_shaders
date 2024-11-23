@@ -15,6 +15,9 @@
 struct application {
 	dx12_handler* dx12;
 	compute_buffer* buffer;
+
+	ComPtr<ID3D12RootSignature> root_signature;
 };
 
 void initialize_application(application* app);
+ComPtr<ID3D12RootSignature> create_root_signature(application* app);
