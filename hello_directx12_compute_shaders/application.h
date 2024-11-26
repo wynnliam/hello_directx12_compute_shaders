@@ -17,7 +17,14 @@ struct application {
 	compute_buffer* buffer;
 
 	ComPtr<ID3D12RootSignature> root_signature;
+	ComPtr<ID3D12PipelineState> pipeline_state;
+};
+
+struct pipeline_state_stream {
+	CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE root_sig;
+	CD3DX12_PIPELINE_STATE_STREAM_CS bytecode;
 };
 
 void initialize_application(application* app);
 ComPtr<ID3D12RootSignature> create_root_signature(application* app);
+ComPtr<ID3D12PipelineState> initialize_pipeline_state(application* app);

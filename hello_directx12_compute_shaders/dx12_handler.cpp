@@ -91,7 +91,7 @@ ComPtr<IDXGIAdapter4> get_valid_adapter(ComPtr<IDXGIFactory4> factory) {
 
 		result = D3D12CreateDevice(
 			next_adapter.Get(),
-			D3D_FEATURE_LEVEL_11_0,
+			D3D_FEATURE_LEVEL_12_1,
 			__uuidof(ID3D12Device),
 			NULL
 		);
@@ -114,8 +114,8 @@ ComPtr<IDXGIAdapter4> get_valid_adapter(ComPtr<IDXGIFactory4> factory) {
 	return adapter;
 }
 
-ComPtr<ID3D12Device> create_dx12_device(ComPtr<IDXGIAdapter4> adapter) {
-	ComPtr<ID3D12Device> device;
+ComPtr<ID3D12Device5> create_dx12_device(ComPtr<IDXGIAdapter4> adapter) {
+	ComPtr<ID3D12Device5> device;
 	HRESULT result;
 
 #if defined(_DEBUG)
@@ -141,7 +141,7 @@ ComPtr<ID3D12Device> create_dx12_device(ComPtr<IDXGIAdapter4> adapter) {
 
 	result = D3D12CreateDevice(
 		adapter.Get(),
-		D3D_FEATURE_LEVEL_11_0,
+		D3D_FEATURE_LEVEL_12_1,
 		IID_PPV_ARGS(&device)
 	);
 
@@ -165,7 +165,7 @@ ComPtr<ID3D12Device> create_dx12_device(ComPtr<IDXGIAdapter4> adapter) {
 ComPtr<ID3D12CommandQueue> create_command_queue(dx12_handler* dx12) {
 	ComPtr<ID3D12CommandQueue> command_queue;
 	D3D12_COMMAND_QUEUE_DESC command_queue_desc;
-	ComPtr<ID3D12Device> dev;
+	ComPtr<ID3D12Device5> dev;
 	HRESULT result;
 
 	dev = dx12->device;
@@ -189,7 +189,7 @@ ComPtr<ID3D12CommandQueue> create_command_queue(dx12_handler* dx12) {
 
 ComPtr<ID3D12CommandAllocator> create_command_allocator(dx12_handler* dx12) {
 	ComPtr<ID3D12CommandAllocator> command_allocator;
-	ComPtr<ID3D12Device> dev;
+	ComPtr<ID3D12Device5> dev;
 	HRESULT result;
 
 	dev = dx12->device;
@@ -207,7 +207,7 @@ ComPtr<ID3D12CommandAllocator> create_command_allocator(dx12_handler* dx12) {
 ComPtr<ID3D12GraphicsCommandList> create_command_list(dx12_handler* dx12) {
 	ComPtr<ID3D12GraphicsCommandList> command_list;
 	HRESULT result;
-	ComPtr<ID3D12Device> dev;
+	ComPtr<ID3D12Device5> dev;
 	ComPtr<ID3D12CommandAllocator> allocator;
 
 	dev = dx12->device;
@@ -236,7 +236,7 @@ void initialize_descriptor_heap(
 	const unsigned int num_descriptors,
 	const D3D12_DESCRIPTOR_HEAP_FLAGS flags
 ) {
-	ComPtr<ID3D12Device> dev;
+	ComPtr<ID3D12Device5> dev;
 	ComPtr<ID3D12DescriptorHeap> dx_heap;
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
 	HRESULT result;

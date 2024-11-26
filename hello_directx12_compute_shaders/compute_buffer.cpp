@@ -35,7 +35,7 @@ void allocate_buffer_on_gpu(
 	D3D12_RESOURCE_DESC buffer_desc;
 	HRESULT result;
 	CD3DX12_HEAP_PROPERTIES default_heap;
-	ComPtr<ID3D12Device> dev;
+	ComPtr<ID3D12Device5> dev;
 
 	dev = dx12->device;
 

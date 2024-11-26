@@ -17,12 +17,16 @@ void initialize_application(application* app) {
 	initialize_dx12_handler(app->dx12);
 
 	//
-	// Initialize the root signature
+	// Initialize the root signature.
 	//
 
 	app->root_signature = create_root_signature(app);
 
-	// TODO: Initialize compute pipeline
+	//
+	// Initialize the pipeline state.
+	//
+
+	app->pipeline_state = initialize_pipeline_state(app);
 
 	//
 	// Initialize the compute buffer.
@@ -42,7 +46,7 @@ void initialize_application(application* app) {
 // the code to set up a root signature and pipeline. Otherwise the code
 // will quickly become gross and repetitive.
 ComPtr<ID3D12RootSignature> create_root_signature(application* app) {
-	ComPtr<ID3D12Device> dev;
+	ComPtr<ID3D12Device5> dev;
 	ComPtr<ID3D12RootSignature> root_signature;
 	CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
 	CD3DX12_ROOT_PARAMETER1 pipeline_parameters[1];
@@ -129,4 +133,71 @@ ComPtr<ID3D12RootSignature> create_root_signature(application* app) {
 	throw_if_failed(result);
 
 	return root_signature;
+}
+
+// TODO: Just like root signature initialization, I want to abstract this
+// code too.
+ComPtr<ID3D12PipelineState> initialize_pipeline_state(application* app) {
+	ComPtr<ID3D12PipelineState> pipeline_state;
+	ComPtr<ID3D12Device5> dev;
+	ComPtr<ID3D12RootSignature> root_signature;
+	UINT compile_flags;
+	ComPtr<ID3DBlob> compute_blob;
+	ComPtr<ID3DBlob> err_blob;
+	char* err_msg;
+	D3D12_PIPELINE_STATE_STREAM_DESC pipeline_state_stream_desc;
+	pipeline_state_stream pss;
+	HRESULT result;
+
+	dev = app->dx12->device;
+	root_signature = app->root_signature;
+
+	//
+	// Compile the shader source code.
+	//
+
+	compile_flags = 0;
+#if defined(_DEBUG)
+	compile_flags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+
+	result = D3DCompileFromFile(
+		L"./hello_compute.hlsl",
+		NULL,
+		NULL,
+		"main",
+		"cs_5_1",
+		compile_flags,
+		0,
+		&compute_blob,
+		&err_blob
+	);
+
+	if (FAILED(result) && err_blob != NULL) {
+		err_msg = (char*)err_blob->GetBufferPointer();
+		cerr << err_msg << endl;
+	}
+
+	throw_if_failed(result);
+
+	//
+	// Now create our pipeline state description.
+	//
+
+	pss.root_sig = root_signature.Get();
+	pss.bytecode = CD3DX12_SHADER_BYTECODE(compute_blob.Get());
+	pipeline_state_stream_desc = { sizeof(pss), &pss };
+
+	//
+	// Finally, create the pipeline state.
+	//
+
+	result = dev->CreatePipelineState(
+		&pipeline_state_stream_desc,
+		IID_PPV_ARGS(&pipeline_state)
+	);
+
+	throw_if_failed(result);
+
+	return pipeline_state;
 }
