@@ -3,6 +3,8 @@
 #include "dx12_handler.h"
 #include "utils.h"
 
+/* DX12_HANDLER IMPL */
+
 void initialize_dx12_handler(dx12_handler* dx12) {
 	ComPtr<IDXGIFactory4> factory;
 	ComPtr<IDXGIAdapter4> adapter;
@@ -259,4 +261,36 @@ void initialize_descriptor_heap(
 	heap->curr_descriptor_index = 0;
 	heap->descriptor_count = num_descriptors;
 	heap->descriptor_size = dev->GetDescriptorHandleIncrementSize(heap_type);
+}
+
+/* DESCRIPTOR_HEAP IMPL */
+unsigned int next_available_heap_index(descriptor_heap* heap) {
+	unsigned int result;
+
+	result = heap->curr_descriptor_index;
+	heap->curr_descriptor_index += 1;
+
+	return result;
+}
+
+CD3DX12_CPU_DESCRIPTOR_HANDLE heap_cpu_handle(
+	descriptor_heap* heap,
+	const unsigned int index
+) {
+	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
+		heap->heap->GetCPUDescriptorHandleForHeapStart(),
+		index,
+		heap->descriptor_size
+	);
+}
+
+CD3DX12_GPU_DESCRIPTOR_HANDLE heap_gpu_handle(
+	descriptor_heap* heap,
+	const unsigned int index
+) {
+	return CD3DX12_GPU_DESCRIPTOR_HANDLE(
+		heap->heap->GetGPUDescriptorHandleForHeapStart(),
+		index,
+		heap->descriptor_size
+	);
 }

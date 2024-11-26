@@ -201,3 +201,48 @@ ComPtr<ID3D12PipelineState> initialize_pipeline_state(application* app) {
 
 	return pipeline_state;
 }
+
+void run_compute(application* app) {
+	ComPtr<ID3D12GraphicsCommandList> command_list;
+	ComPtr<ID3D12CommandAllocator> command_allocator;
+	descriptor_heap* desc_heap;
+	CD3DX12_GPU_DESCRIPTOR_HANDLE gpu_handle;
+	HRESULT result;
+
+	command_list = app->dx12->command_list;
+	command_allocator = app->dx12->command_allocator;
+	desc_heap = app->dx12->cbv_srv_uav_heap;
+
+	//
+	// Reset the command list.
+	//
+
+	result = command_allocator->Reset();
+	throw_if_failed(result);
+
+	result = command_list->Reset(command_allocator.Get(), app->pipeline_state.Get());
+	throw_if_failed(result);
+
+	//
+	// Bind the root signature and pipeline.
+	//
+
+	command_list->SetComputeRootSignature(app->root_signature.Get());
+	command_list->SetPipelineState(app->pipeline_state.Get());
+
+	//
+	// Bind the back buffer.
+	//
+
+	ID3D12DescriptorHeap* heaps[] = { app->dx12->cbv_srv_uav_heap->heap.Get() };
+	command_list->SetDescriptorHeaps(1, heaps);
+
+	gpu_handle = heap_gpu_handle(desc_heap, app->buffer->uav_index);
+	command_list->SetComputeRootDescriptorTable(0, gpu_handle);
+
+	//
+	// Dispatch the compute shader
+	//
+
+	command_list->Dispatch(32, 32, 1);
+}

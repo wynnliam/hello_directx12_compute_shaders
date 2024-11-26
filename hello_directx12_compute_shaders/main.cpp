@@ -19,6 +19,7 @@ int main() {
 
 	app = new application;
 	initialize_application(app);
+	run_compute(app);
 
 	delete app;
 

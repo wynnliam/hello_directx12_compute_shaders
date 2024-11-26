@@ -76,5 +76,23 @@ void create_buffer_descriptor(
 	compute_buffer* buffer,
 	dx12_handler* dx12
 ) {
+	descriptor_heap* desc_heap;
+	ComPtr<ID3D12Device5> dev;
+	D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc;
 
+	desc_heap = dx12->cbv_srv_uav_heap;
+	dev = dx12->device;
+
+	uav_desc = {};
+	uav_desc.Format = buffer->format;
+	uav_desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+
+	buffer->uav_index = next_available_heap_index(desc_heap);
+
+	dev->CreateUnorderedAccessView(
+		buffer->buffer.Get(),
+		NULL,
+		&uav_desc,
+		heap_cpu_handle(desc_heap, buffer->uav_index)
+	);
 }

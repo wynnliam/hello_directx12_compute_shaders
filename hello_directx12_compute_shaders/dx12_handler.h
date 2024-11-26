@@ -25,6 +25,7 @@ struct dx12_handler {
 	descriptor_heap* cbv_srv_uav_heap;
 };
 
+/* DX12_HANDLER ROUTINES */
 void initialize_dx12_handler(dx12_handler* dx12);
 void enable_dx12_debug_layer();
 ComPtr<IDXGIFactory4> create_dx12_factory();
@@ -39,4 +40,15 @@ void initialize_descriptor_heap(
 	const D3D12_DESCRIPTOR_HEAP_TYPE heap_type,
 	const unsigned int num_descriptors,
 	const D3D12_DESCRIPTOR_HEAP_FLAGS flags
+);
+
+/* DESCRIPTOR HEAP ROUTINES */
+unsigned int next_available_heap_index(descriptor_heap* heap);
+CD3DX12_CPU_DESCRIPTOR_HANDLE heap_cpu_handle(
+	descriptor_heap* heap,
+	const unsigned int index
+);
+CD3DX12_GPU_DESCRIPTOR_HANDLE heap_gpu_handle(
+	descriptor_heap* heap,
+	const unsigned int index
 );
