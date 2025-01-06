@@ -16,6 +16,8 @@
 
 struct compute_buffer {
 	ComPtr<ID3D12Resource> buffer;
+	ComPtr<ID3D12Resource> readback_buffer;
+
 	unsigned int uav_index;
 
 	unsigned int width;
@@ -37,6 +39,11 @@ void allocate_buffer_on_gpu(
 );
 
 void create_buffer_descriptor(
+	compute_buffer* buffer,
+	dx12_handler* dx12
+);
+
+void initialize_readback_buffer(
 	compute_buffer* buffer,
 	dx12_handler* dx12
 );
