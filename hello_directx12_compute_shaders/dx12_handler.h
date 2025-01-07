@@ -23,6 +23,15 @@ struct dx12_handler {
 	ComPtr<ID3D12GraphicsCommandList> command_list;
 
 	descriptor_heap* cbv_srv_uav_heap;
+
+	//
+	// Synchronization fence objects.
+	//
+
+	UINT frame_index;
+	HANDLE fence_event;
+	ComPtr<ID3D12Fence> fence;
+	UINT64 fence_value;
 };
 
 /* DX12_HANDLER ROUTINES */
@@ -41,6 +50,10 @@ void initialize_descriptor_heap(
 	const unsigned int num_descriptors,
 	const D3D12_DESCRIPTOR_HEAP_FLAGS flags
 );
+ComPtr<ID3D12Fence> create_fence(ComPtr<ID3D12Device5> device);
+HANDLE create_fence_event();
+void wait_for_previous_frame(dx12_handler* dx12);
+void shutdown_directx_12(dx12_handler* dx12);
 
 /* DESCRIPTOR HEAP ROUTINES */
 unsigned int next_available_heap_index(descriptor_heap* heap);

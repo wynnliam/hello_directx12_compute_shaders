@@ -17,6 +17,7 @@
 struct compute_buffer {
 	ComPtr<ID3D12Resource> buffer;
 	ComPtr<ID3D12Resource> readback_buffer;
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint_for_readback;
 
 	unsigned int uav_index;
 

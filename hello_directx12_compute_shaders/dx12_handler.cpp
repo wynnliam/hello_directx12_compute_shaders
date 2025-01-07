@@ -27,6 +27,15 @@ void initialize_dx12_handler(dx12_handler* dx12) {
 		1000,
 		D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
 	);
+
+	//
+	// Finally, create the fence and synchronization objects.
+	//
+
+	dx12->frame_index = 0;
+	dx12->fence_value = 1;
+	dx12->fence = create_fence(dx12->device);
+	dx12->fence_event = create_fence_event();
 }
 
 void enable_dx12_debug_layer() {
@@ -261,6 +270,73 @@ void initialize_descriptor_heap(
 	heap->curr_descriptor_index = 0;
 	heap->descriptor_count = num_descriptors;
 	heap->descriptor_size = dev->GetDescriptorHandleIncrementSize(heap_type);
+}
+
+ComPtr<ID3D12Fence> create_fence(ComPtr<ID3D12Device5> device) {
+	ComPtr<ID3D12Fence> fence;
+	HRESULT result;
+
+	result = device->CreateFence(
+		0,
+		D3D12_FENCE_FLAG_NONE,
+		IID_PPV_ARGS(&fence)
+	);
+
+	throw_if_failed(result);
+
+	return fence;
+}
+
+HANDLE create_fence_event() {
+	HANDLE fence_event;
+	HRESULT err;
+
+	fence_event = CreateEvent(NULL, FALSE, FALSE, NULL);
+	if (!fence_event) {
+		err = HRESULT_FROM_WIN32(GetLastError());
+		throw_if_failed(err);
+	}
+
+	return fence_event;
+}
+
+void wait_for_previous_frame(dx12_handler* dx12) {
+	UINT64 fence_val;
+	ComPtr<ID3D12Fence> fence;
+	HANDLE fence_event;
+	ComPtr<ID3D12CommandQueue> command_queue;
+	HRESULT result;
+
+	fence_val = dx12->fence_value;
+	fence = dx12->fence;
+	fence_event = dx12->fence_event;
+	command_queue = dx12->command_queue;
+
+	//
+	// Signal and increment the fence value.
+	//
+
+	result = command_queue->Signal(fence.Get(), fence_val);
+	throw_if_failed(result);
+	dx12->fence_value++;
+
+	//
+	// Now wait until the previous frame is finished.
+	//
+
+	if (fence->GetCompletedValue() < fence_val) {
+		result = fence->SetEventOnCompletion(fence_val, fence_event);
+		throw_if_failed(result);
+		WaitForSingleObject(fence_event, INFINITE);
+	}
+
+	// Next we invoke GetCrrentBackBufferIndex, but this program
+	// has no swap chain. Let's see if we can get away with that.
+}
+
+void shutdown_directx_12(dx12_handler* dx12) {
+	wait_for_previous_frame(dx12);
+	CloseHandle(dx12->fence_event);
 }
 
 /* DESCRIPTOR_HEAP IMPL */

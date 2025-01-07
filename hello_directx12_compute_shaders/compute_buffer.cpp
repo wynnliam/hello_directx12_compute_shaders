@@ -124,7 +124,9 @@ void initialize_readback_buffer(
 	buffer_desc = data_buffer->GetDesc();
 
 	//
-	// Not entirely clear why we need to do this step.
+	// Get the footprint and other metadata. The footprint
+	// is used later when we copy the data back into the readback
+	// buffer.
 	//
 
 	device->GetCopyableFootprints(
@@ -137,6 +139,8 @@ void initialize_readback_buffer(
 		&row_size_in_bytes,
 		&total_buffer_size
 	);
+
+	buffer->footprint_for_readback = footprint;
 
 	//
 	// Use the result from above to create our readback buffer.

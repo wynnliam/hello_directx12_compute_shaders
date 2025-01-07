@@ -207,6 +207,9 @@ void run_compute(application* app) {
 	ComPtr<ID3D12CommandAllocator> command_allocator;
 	descriptor_heap* desc_heap;
 	CD3DX12_GPU_DESCRIPTOR_HANDLE gpu_handle;
+	D3D12_RESOURCE_BARRIER barrier;
+	D3D12_TEXTURE_COPY_LOCATION src_location;
+	D3D12_TEXTURE_COPY_LOCATION dst_location;
 	HRESULT result;
 
 	command_list = app->dx12->command_list;
@@ -245,4 +248,44 @@ void run_compute(application* app) {
 	//
 
 	command_list->Dispatch(32, 32, 1);
+
+	//
+	// Now transition the buffer to copy source.
+	//
+
+	barrier = {};
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Transition.pResource = app->buffer->buffer.Get();
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_SOURCE;
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+
+	command_list->ResourceBarrier(1, &barrier);
+
+	//
+	// Now copy the GPU buffer into the readback buffer.
+	//
+
+	src_location = {};
+	src_location.pResource = app->buffer->buffer.Get();
+	src_location.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+	src_location.SubresourceIndex = 0;
+
+	dst_location = {};
+	dst_location.pResource = app->buffer->readback_buffer.Get();
+	dst_location.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+	dst_location.PlacedFootprint = app->buffer->footprint_for_readback;
+
+	command_list->CopyTextureRegion(
+		&dst_location,
+		0,
+		0,
+		0,
+		&src_location,
+		NULL
+	);
+}
+
+void shutdown_app(application* app) {
+	shutdown_directx_12(app->dx12);
 }

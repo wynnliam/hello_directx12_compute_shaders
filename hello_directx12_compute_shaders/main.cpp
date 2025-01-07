@@ -21,6 +21,7 @@ int main() {
 	initialize_application(app);
 	run_compute(app);
 
+	shutdown_app(app);
 	delete app;
 
 	return 0;
