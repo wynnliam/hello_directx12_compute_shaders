@@ -20,6 +20,7 @@ int main() {
 	app = new application;
 	initialize_application(app);
 	run_compute(app);
+	read_back_data(app);
 
 	shutdown_app(app);
 	delete app;

@@ -6,6 +6,7 @@
 #include <iostream>
 
 using namespace std;
+using namespace DirectX;
 
 void initialize_application(application* app) {
 
@@ -38,7 +39,7 @@ void initialize_application(application* app) {
 		app->dx12,
 		256,
 		256,
-		DXGI_FORMAT_R8G8B8A8_UNORM
+		DXGI_FORMAT_R32G32B32A32_FLOAT
 	);
 }
 
@@ -205,6 +206,7 @@ ComPtr<ID3D12PipelineState> initialize_pipeline_state(application* app) {
 void run_compute(application* app) {
 	ComPtr<ID3D12GraphicsCommandList> command_list;
 	ComPtr<ID3D12CommandAllocator> command_allocator;
+	ComPtr<ID3D12CommandQueue> command_queue;
 	descriptor_heap* desc_heap;
 	CD3DX12_GPU_DESCRIPTOR_HANDLE gpu_handle;
 	D3D12_RESOURCE_BARRIER barrier;
@@ -214,6 +216,7 @@ void run_compute(application* app) {
 
 	command_list = app->dx12->command_list;
 	command_allocator = app->dx12->command_allocator;
+	command_queue = app->dx12->command_queue;
 	desc_heap = app->dx12->cbv_srv_uav_heap;
 
 	//
@@ -232,6 +235,20 @@ void run_compute(application* app) {
 
 	command_list->SetComputeRootSignature(app->root_signature.Get());
 	command_list->SetPipelineState(app->pipeline_state.Get());
+
+	//
+	// Transition the buffer to UNORDERED_ACCESS before
+	// dispatch.
+	//
+
+	barrier = {};
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Transition.pResource = app->buffer->buffer.Get();
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+
+	command_list->ResourceBarrier(1, &barrier);
 
 	//
 	// Bind the back buffer.
@@ -284,6 +301,80 @@ void run_compute(application* app) {
 		&src_location,
 		NULL
 	);
+
+	result = command_list->Close();
+	throw_if_failed(result);
+	ID3D12CommandList* commands[] = { command_list.Get() };
+	command_queue->ExecuteCommandLists(
+		_countof(commands),
+		commands
+	);
+
+	//
+	// Synchronize the GPU and CPU.
+	//
+
+	wait_for_previous_frame(app->dx12);
+}
+
+void read_back_data(application* app) {
+	compute_buffer* cb;
+	ComPtr<ID3D12Resource> readback_buffer;
+	void* mapped_data;
+	BYTE* row_data;
+	UINT num_rows;
+	UINT num_cols;
+	UINT row_pitch;
+	XMFLOAT4* next_row_float;
+	HRESULT result;
+
+	mapped_data = NULL;
+	cb = app->buffer;
+	readback_buffer = cb->readback_buffer;
+
+	//
+	// Map the readback buffer.
+	//
+
+	result = readback_buffer->Map(
+		0,
+		NULL,
+		&mapped_data
+	);
+
+	throw_if_failed(result);
+
+	//
+	// Print the data
+	//
+
+	row_data = reinterpret_cast<BYTE*>(mapped_data);
+	num_rows = cb->height;
+	num_cols = cb->width;
+	row_pitch = cb->footprint_for_readback.Footprint.RowPitch;
+
+	for (UINT row = 0; row < num_rows; row++) {
+		next_row_float = reinterpret_cast<XMFLOAT4*>(row_data);
+		for (UINT col = 0; col < num_cols; col++) {
+			printf(
+				"Element (%u, %u): (%f, %f, %f, %f)\n",
+				row,
+				col,
+				next_row_float[col].x,
+				next_row_float[col].y,
+				next_row_float[col].z,
+				next_row_float[col].w
+			);
+		}
+
+		row_data += row_pitch;
+	}
+
+	//
+	// Finally, unmap the data.
+	//
+
+	readback_buffer->Unmap(0, NULL);
 }
 
 void shutdown_app(application* app) {

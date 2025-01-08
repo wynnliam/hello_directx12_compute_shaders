@@ -8,7 +8,7 @@ void main( uint3 dispatch_thread_id : SV_DispatchThreadID )
     float2 uv;
     
     buffer.GetDimensions(width, height);
-    uv = dispatch_thread_id.xy / float2(width, height);
+    uv = dispatch_thread_id.xy / float2(width - 1, height - 1);
     
     buffer[dispatch_thread_id.xy] = float4(uv.xy, 0.0f, 1.0f);
 }

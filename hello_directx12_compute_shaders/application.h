@@ -30,5 +30,6 @@ ComPtr<ID3D12RootSignature> create_root_signature(application* app);
 ComPtr<ID3D12PipelineState> initialize_pipeline_state(application* app);
 
 void run_compute(application* app);
+void read_back_data(application* app);
 
 void shutdown_app(application* app);
